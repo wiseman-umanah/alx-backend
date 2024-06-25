@@ -3,7 +3,7 @@
 size and offset"""
 import csv
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 
 def index_range(page: int, page_size: int) -> Tuple[int, int]:
@@ -49,7 +49,7 @@ class Server:
         ran = index_range(page, page_size)
         return self.dataset()[ran[0]: ran[1]]
 
-    def get_hyper(self, page: int = 1, page_size: int = 10) -> List[List]:
+    def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict:
         """Function to get the hyper version of data from source"""
         assert type(page) is int and page > 0
         assert type(page_size) is int and page_size > 0
