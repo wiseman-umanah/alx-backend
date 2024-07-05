@@ -10,6 +10,7 @@ from flask import request
 app = Flask(__name__)
 
 
+@babel.localeselector
 def get_locale():
     """Select best language"""
     return request.accept_languages.best_match(['en', 'fr'])
