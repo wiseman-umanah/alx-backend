@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-get_locale function with the babel.localeselector decorator
+get_locale function with the
+babel.localeselector decorator
 """
 from flask import Flask, render_template
 from flask_babel import Babel
@@ -16,7 +17,7 @@ def get_locale():
     return request.accept_languages.best_match(['en', 'fr'])
 
 
-babel = Babel(app, locale_selector=get_locale)
+babel = Babel(app)
 
 
 @app.route("/")
