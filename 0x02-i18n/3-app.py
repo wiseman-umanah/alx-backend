@@ -6,17 +6,26 @@ from flask import Flask, render_template, request
 from flask_babel import Babel, gettext as _
 
 app = Flask(__name__)
-app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
 
 
+class Config(object):
+    """
+    Configuration for Babel
+    """
+    LANGUAGES = ["en", "fr"]
+    BABEL_DEFAULT_LOCALE = "en"
+    BABEL_DEFAULT_TIMEZONE = "UTC"
+
+
+app.config.from_object(Config)
+babel = Babel(app)
+
+
+@babel.localeselector
 def get_locale():
-    """Find best language for user"""
-    return request.args.get('lang',
-                            request.accept_languages.best_match(['fr', 'en']))
+    """Select best language"""
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
 
-
-babel = Babel(app, locale_selector=get_locale)
 
 
 @app.route('/')
