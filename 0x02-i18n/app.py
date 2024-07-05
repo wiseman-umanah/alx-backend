@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Getting timezone of Users"""
 from flask import Flask, render_template, request, g
-from flask_babel import Babel, gettext as _
+from flask_babel import Babel
 import pytz
-from pytz.exceptions import UnknownTimeZoneError
-from datetime import datetime
+from time import datetime
+from pytz import UnknownTimeZoneError
 
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
@@ -14,25 +14,35 @@ users = {
 }
 
 
+class Config(object):
+    """
+    Configuration for Babel
+    """
+    LANGUAGES = ["en", "fr"]
+    BABEL_DEFAULT_LOCALE = "en"
+    BABEL_DEFAULT_TIMEZONE = "UTC"
+
+
 app = Flask(__name__)
-app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
-app.config['BABEL_DEFAULT_TIMEZONE'] = 'UTC'
-
-SUPPORTED_LOCALES = ['fr', 'en']
+app.config.from_object(Config)
+babel = Babel(app)
 
 
+@babel.localeselector
 def get_locale():
-    """Get user's locale"""
+    """
+    Select and return best language match based on supported languages
+    """
     user = getattr(g, 'user', None)
-    if user and user['locale'] in SUPPORTED_LOCALES:
+    if user and user['locale'] in app.config['LANGUAGES']:
         return user['locale']
-    lang = request.args.get('locale')
-    if lang in SUPPORTED_LOCALES:
-        return lang
-    return request.accept_languages.best_match(SUPPORTED_LOCALES)
+    loc = request.args.get('locale')
+    if loc in app.config['LANGUAGES']:
+        return loc
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
+@babel.timezoneselector
 def get_timezone():
     """Get timezone"""
     time = request.args.get('timezone')
@@ -54,14 +64,11 @@ def get_timezone():
     return 'UTC'
 
 
-babel = Babel(app, locale_selector=get_locale, timezone_selector=get_timezone)
-
-
 def get_user():
-    """Get user id"""
-    user_id = request.args.get('login_as')
-    if user_id:
-        return users.get(int(user_id))
+    """Get user's id"""
+    id = request.args.get('login_as', None)
+    if id is not None and int(id) in users.keys():
+        return users.get(int(id))
     return None
 
 
@@ -74,20 +81,19 @@ def get_current_time_in_timezone(timezone):
 
 @app.before_request
 def before_request():
-    """Runs before each request"""
-    g.user = get_user()
+    """Run before each request
+    """
+    user = get_user()
+    g.user = user
 
 
 @app.route('/')
 def index():
     """Home route"""
-    home_title = _('home_title')
-    home_header = _('home_header')
     timezone = get_timezone()
     tf = get_current_time_in_timezone(timezone)
 
-    return render_template('index.html', home_title=home_title,
-                           home_header=home_header, tf=tf)
+    return render_template('index.html', tf=tf)
 
 
 if __name__ == '__main__':
