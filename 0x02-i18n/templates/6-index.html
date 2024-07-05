@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ home_title }}</title>
+    <title>{{ gettext(home_title) }}</title>
 </head>
 <body>
-    <h1>{{ home_header }}</h1>
+    <h1>{{ getext(home_header) }}</h1>
     <p>
         {% if g.user %}
             {{ _('You are logged in as %(username)s.', username=g.user['name']) }}
