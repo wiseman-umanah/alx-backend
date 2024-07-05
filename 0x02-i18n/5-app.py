@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Simulated User Login system"""
 from flask import Flask, render_template, request, g
-from flask_babel import Babel, gettext as _
+from flask_babel import Babel
 
 
 users = {
@@ -13,24 +13,31 @@ users = {
 
 
 app = Flask(__name__)
-app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
-
-SUPPORTED_LOCALES = ['fr', 'en']
 
 
+class Config(object):
+    """
+    Configuration for Babel
+    """
+    LANGUAGES = ["en", "fr"]
+    BABEL_DEFAULT_LOCALE = "en"
+    BABEL_DEFAULT_TIMEZONE = "UTC"
+
+
+app.config.from_object(Config)
+babel = Babel(app)
+
+
+@babel.localeselector
 def get_locale():
     """Find best language for user from query"""
     user = getattr(g, 'user', None)
-    if user and user['locale'] in SUPPORTED_LOCALES:
+    if user and user['locale'] in app.config['LANGUAGES']:
         return user['locale']
     lang = request.args.get('locale')
-    if lang in SUPPORTED_LOCALES:
+    if lang in app.config['LANGUAGES']:
         return lang
-    return request.accept_languages.best_match(SUPPORTED_LOCALES)
-
-
-babel = Babel(app, locale_selector=get_locale)
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
 def get_user():
@@ -50,10 +57,7 @@ def before_request():
 @app.route('/')
 def index():
     """Index route"""
-    home_title = _('home_title')
-    home_header = _('home_header')
-    return render_template('5-index.html',
-                           home_title=home_title, home_header=home_header)
+    return render_template('5-index.html')
 
 
 if __name__ == '__main__':
